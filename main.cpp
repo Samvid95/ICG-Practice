@@ -4,20 +4,28 @@
 GLuint program;
 
 GLuint vertexBufferVBO;
+GLuint colorBufferVBO;
+
 GLuint positionAttribute;
+GLuint colorAttribute;
 
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glUseProgram(program);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferVBO);
-	
 	glVertexAttribPointer(positionAttribute, 2, GL_FLOAT, FALSE, 0, 0);
 	glEnableVertexAttribArray(positionAttribute);
 
+	
+	glBindBuffer(GL_ARRAY_BUFFER, colorBufferVBO);
+	glVertexAttribPointer(colorAttribute, 4, GL_FLOAT, FALSE, 0, 0);
+	glEnableVertexAttribArray(colorAttribute);
+	
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glDisableVertexAttribArray(positionAttribute);
+	glDisableVertexAttribArray(colorAttribute);
 
 	glutSwapBuffers();
 }
@@ -28,6 +36,7 @@ void init() {
 
 	glUseProgram(program);
 	positionAttribute = glGetAttribLocation(program, "position");
+	colorAttribute = glGetAttribLocation(program, "color");
 
 	glGenBuffers(1, &vertexBufferVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferVBO);
@@ -43,6 +52,22 @@ void init() {
 	};
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
+	
+	glGenBuffers(1, &colorBufferVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, colorBufferVBO);
+
+	GLfloat colordata[] = {
+		1.0f, 0.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 1.0f, 1.0f,
+		0.0f, 0.0f, 1.0f, 1.0f,
+
+		1.0f, 0.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 1.0f, 1.0f
+	};
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(colordata), colordata, GL_STATIC_DRAW);
+	
 }
 
 void reshape(int w, int h) {
