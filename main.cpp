@@ -4,10 +4,13 @@
 GLuint program;
 
 GLuint vertexBufferVBO;
-GLuint colorBufferVBO;
+GLuint textureBufferVBO;
+
 
 GLuint positionAttribute;
-GLuint colorAttribute;
+GLuint texCoordAttribute;
+
+GLuint smurf;
 
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -18,25 +21,30 @@ void display(void) {
 	glEnableVertexAttribArray(positionAttribute);
 
 	
-	glBindBuffer(GL_ARRAY_BUFFER, colorBufferVBO);
-	glVertexAttribPointer(colorAttribute, 4, GL_FLOAT, FALSE, 0, 0);
-	glEnableVertexAttribArray(colorAttribute);
+	glBindBuffer(GL_ARRAY_BUFFER, textureBufferVBO);
+	glVertexAttribPointer(texCoordAttribute, 2, GL_FLOAT, FALSE, 0, 0);
+	glEnableVertexAttribArray(texCoordAttribute);
+
+	glBindTexture(GL_TEXTURE_2D, smurf);
 	
+
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glDisableVertexAttribArray(positionAttribute);
-	glDisableVertexAttribArray(colorAttribute);
+	glDisableVertexAttribArray(texCoordAttribute);
 
 	glutSwapBuffers();
 }
 
 void init() {
+	glClearColor(0.5, 0.5, 0.5, 1.0);
 	program = glCreateProgram();
 	readAndCompileShader(program, "vertex.glsl", "fragment.glsl");
 
+	smurf = loadGLTexture("Smurf1.png");
 	glUseProgram(program);
 	positionAttribute = glGetAttribLocation(program, "position");
-	colorAttribute = glGetAttribLocation(program, "color");
+	texCoordAttribute = glGetAttribLocation(program, "texCoord");
 
 	glGenBuffers(1, &vertexBufferVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferVBO);
@@ -53,20 +61,20 @@ void init() {
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
 	
-	glGenBuffers(1, &colorBufferVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, colorBufferVBO);
+	glGenBuffers(1, &textureBufferVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, textureBufferVBO);
 
-	GLfloat colordata[] = {
-		1.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
+	GLfloat textureData[] = {
+		0.0f, 1.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
 
-		1.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 1.0f, 1.0f
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f
 	};
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(colordata), colordata, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(textureData), textureData, GL_STATIC_DRAW);
 	
 }
 
@@ -84,6 +92,9 @@ int main(int argc, char **argv) {
 	glutInitWindowSize(500, 500);
 	glutCreateWindow("CS-6533");
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
 	glewInit();
 
 	glutDisplayFunc(display);
