@@ -1,9 +1,7 @@
 attribute vec4 position;
-attribute vec2 texCoord;
 
-varying vec2 varyingTexCoord;
-
+uniform mat4 modelViewMatrix;
 void main() {
-	varyingTexCoord = texCoord;
-	gl_Position = position;
+
+	gl_Position = modelViewMatrix * position;
 }

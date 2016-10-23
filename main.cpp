@@ -1,5 +1,6 @@
 #include "glsupport.h"
 #include <GL/freeglut.h>
+#include "matrix4.h"
 
 GLuint program;
 
@@ -8,9 +9,8 @@ GLuint textureBufferVBO;
 
 
 GLuint positionAttribute;
-GLuint texCoordAttribute;
 
-GLuint smurf;
+GLuint modelViewMatrixUniformLocation;
 
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -20,19 +20,24 @@ void display(void) {
 	glVertexAttribPointer(positionAttribute, 2, GL_FLOAT, FALSE, 0, 0);
 	glEnableVertexAttribArray(positionAttribute);
 
-	
-	glBindBuffer(GL_ARRAY_BUFFER, textureBufferVBO);
-	glVertexAttribPointer(texCoordAttribute, 2, GL_FLOAT, FALSE, 0, 0);
-	glEnableVertexAttribArray(texCoordAttribute);
+	int timeSinceStart = glutGet(GLUT_ELAPSED_TIME);
 
-	glBindTexture(GL_TEXTURE_2D, smurf);
-	
+	Matrix4 objectMatrix;
+	objectMatrix = objectMatrix.makeXRotation(45 * (float)timeSinceStart/1000.0f);
+
+	Matrix4 eyeMatrix;
+	eyeMatrix = eyeMatrix.makeTranslation(Cvec3(-0.5, 0.0, 0.0));
+
+	Matrix4 modelViewMatrix;
+	modelViewMatrix = inv(eyeMatrix) * objectMatrix;
+
+	GLfloat glMatrix[16];
+	modelViewMatrix.writeToColumnMajorMatrix(glMatrix);
+	glUniformMatrix4fv(modelViewMatrixUniformLocation, 1, false, glMatrix);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glDisableVertexAttribArray(positionAttribute);
-	glDisableVertexAttribArray(texCoordAttribute);
-
 	glutSwapBuffers();
 }
 
@@ -41,10 +46,11 @@ void init() {
 	program = glCreateProgram();
 	readAndCompileShader(program, "vertex.glsl", "fragment.glsl");
 
-	smurf = loadGLTexture("Smurf1.png");
+	
 	glUseProgram(program);
 	positionAttribute = glGetAttribLocation(program, "position");
-	texCoordAttribute = glGetAttribLocation(program, "texCoord");
+	modelViewMatrixUniformLocation = glGetUniformLocation(program, "modelViewMatrix");
+	
 
 	glGenBuffers(1, &vertexBufferVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferVBO);
@@ -61,20 +67,7 @@ void init() {
 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
 	
-	glGenBuffers(1, &textureBufferVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, textureBufferVBO);
 
-	GLfloat textureData[] = {
-		0.0f, 1.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-
-		0.0f, 1.0f,
-		0.0f, 0.0f,
-		1.0f, 0.0f
-	};
-
-	glBufferData(GL_ARRAY_BUFFER, sizeof(textureData), textureData, GL_STATIC_DRAW);
 	
 }
 
